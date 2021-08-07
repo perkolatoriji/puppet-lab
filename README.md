@@ -37,17 +37,26 @@ The structure of this project is simple, it contains this readme file, and a fol
 	+-- manifests
 		  init.pp
 		  nginx.pp
+		  proxy.pp
 ```
 The puppet manifests must go into your puppet server's desired environment, for example:
 
 `/etc/puppetlabs/code/environments/production/modules`
 
+
+## Installation:
+
+The first step (proxy) will be installed on the client defined as "puppetclient", and its defined in the nginx.pp manifest.
+
+The second step (fw proxy) will be installed on the server defined as "puppet", ans it's defined in the proxy.pp manifest.
+
+
 The installation will be done on the puppet client named "puppetclient", change this definition to the client that you want
-to install into, by mofifying the first line of nginx.pp module:
+to install into, by mofifying the first line of nginx.pp or proxy.pp modules accordingly:
 
 `node 'puppetclient'{`
 
-The SSL certs must be put on the folder /etc/nginx/ssl of the client, to create self-signed certs for a test run:
+The SSL certs must be put on the folder /etc/nginx/ssl of the client or server, to create self-signed certs for a test run:
 
 `sudo mkdir -p /etc/nginx/ssl/`
 
@@ -57,12 +66,18 @@ To trigger the installation process from the client, we have to run the puppet a
 
 `sudo /opt/puppetlabs/bin/puppet agent --test`
 
+To trigger the installation process from the server, we have to run the puppet apply cmd:
+
+`sudo puppet apply /etc/puppetlabs/code/environments/production/modules/proxy.pp`
+
+Note: you can run it with the "--noop" flag to run first a dry-run apply cmd.
+
 
 ## Tests:
 
-To test the environment, we can do the following:
+To test the client nginx environment, we can do the following:
 
-1.- define domain.com locally in our clients /etc/hosts to bypass DNS resolution:
+1.- define domain.com locally in our client /etc/hosts to bypass DNS resolution:
 
 `echo "$(facter ipaddress)  domain.com" >> /etc/hosts`
 
@@ -73,4 +88,5 @@ To test the environment, we can do the following:
 3.- launch a few requests via curl:
 
 `for i in 1 2 3 4 5; do curl -k https://domain.com/ -v -m1; curl -k https://domain.com/resource -v -m1; done`
+
 
